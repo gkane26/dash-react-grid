@@ -1,0 +1,41 @@
+[project]
+name = "dash-react-grid"
+version = "0.1.0"
+description = "Dash component for react-grid-layout"
+authors = [
+    {name = "Gary Kane", email = "gkane@stanford.edu"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "dash>=3.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "selenium>=4.0.0",
+    "dash[testing]>=3.2.0",
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dash_react_grid"]
+include-package-data = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[dependency-groups]
+dev = [
+    "dash[testing]>=3.2.0",
+    "pytest>=8.3.5",
+    "selenium>=4.2.0",
+]
