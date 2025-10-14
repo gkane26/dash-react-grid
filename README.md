@@ -2,6 +2,8 @@
 
 `dash-react-grid` wraps [`react-grid-layout`](https://github.com/react-grid-layout/react-grid-layout) so you can build draggable, resizable dashboards with pure Dash components.
 
+#### Written by gpt-5-codex and Claude Sonnet 4.5
+
 ## Quick start
 
 1. Install the package inside your Dash project (local path or editable install):
