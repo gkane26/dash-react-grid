@@ -1,4 +1,6 @@
 # AUTO GENERATED FILE - DO NOT EDIT
 
 export(ReactGridLayout)
+export(ReactResponsiveGridLayout)
+export(reactResponsiveGridLayout)
 export(reactGridLayout)

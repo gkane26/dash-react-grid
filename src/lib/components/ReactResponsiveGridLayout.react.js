@@ -1,103 +1,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import RGL, { WidthProvider } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
+import { ReactResponsiveGridLayout as RealComponent } from '../LazyLoader';
 
-const BaseGrid = WidthProvider(RGL);
+/**
+ * Dash wrapper around `react-grid-layout`'s ResponsiveGridLayout. Supply a `layouts`
+ * object with layouts for different breakpoints, and pass Dash components as children
+ * whose `id` matches the corresponding layout item's `i` value. The grid will automatically
+ * switch between layouts based on container width.
+ */
+const ReactResponsiveGridLayout = (props) => (
+    <React.Suspense fallback={null}>
+        <RealComponent {...props} />
+    </React.Suspense>
+);
 
-const normaliseKey = (value) => {
-    if (value === null || value === undefined) {
-        return undefined;
-    }
-
-    return String(value).replace(/^\.\$/, '');
-};
-
-const childIdentifier = (child) => {
-    if (!React.isValidElement(child)) {
-        return undefined;
-    }
-
-    if (child.props && child.props.gridItemKey !== undefined) {
-        return normaliseKey(child.props.gridItemKey);
-    }
-
-    if (child.props && child.props.id !== undefined) {
-        return normaliseKey(child.props.id);
-    }
-
-    return normaliseKey(child.key);
-};
-
-export default class ReactGridLayout extends React.Component {
-    handleLayoutChange = (nextLayout, allLayouts) => {
-        const { setProps, onLayoutChange } = this.props;
-
-        if (typeof onLayoutChange === 'function') {
-            onLayoutChange(nextLayout, allLayouts);
-        }
-
-        if (setProps) {
-            setProps({ layout: nextLayout });
-        }
-    };
-
-    renderChildren(layoutArray) {
-        const { children } = this.props;
-        const childArray = React.Children.toArray(children);
-
-        const childMap = new Map();
-        childArray.forEach((child) => {
-            const key = childIdentifier(child);
-            if (key !== undefined && !childMap.has(key)) {
-                childMap.set(key, child);
-            }
-        });
-
-        return layoutArray.map((item) => {
-            const key = normaliseKey(item.i);
-            const content = key ? childMap.get(key) : null;
-
-            if (key && !content && process.env.NODE_ENV !== 'production') {
-                // eslint-disable-next-line no-console
-                console.warn(
-                    `dash-react-grid: no child found for layout item "${key}". ` +
-                    'Ensure each child has an id that matches the layout `i` value.'
-                );
-            }
-
-            return (
-                <div key={key} data-grid={item}>
-                    {content}
-                </div>
-            );
-        });
-    }
-
-    render() {
-        const { layout, children, setProps, onLayoutChange, ...otherProps } = this.props;
-        const layoutArray = Array.isArray(layout) ? layout : [];
-        const hasLayout = layoutArray.length > 0;
-        const gridChildren = hasLayout
-            ? this.renderChildren(layoutArray)
-            : React.Children.toArray(children);
-
-        return (
-            <BaseGrid
-                layout={hasLayout ? layoutArray : undefined}
-                onLayoutChange={this.handleLayoutChange}
-                {...otherProps}
-            >
-                {gridChildren}
-            </BaseGrid>
-        );
-    }
-}
-
-ReactGridLayout.defaultProps = {
-    layout: [],
-    cols: 12,
+ReactResponsiveGridLayout.defaultProps = {
+    breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
+    cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
+    layouts: {},
     rowHeight: 30,
     margin: [10, 10],
     containerPadding: [10, 10],
@@ -110,14 +30,14 @@ ReactGridLayout.defaultProps = {
     allowOverlap: false
 };
 
-ReactGridLayout.propTypes = {
+ReactResponsiveGridLayout.propTypes = {
     /**
      * The ID used to identify this component in Dash callbacks.
      */
     id: PropTypes.string,
 
     /**
-     * Layout configuration for the grid. Each entry must include `i`, `x`, `y`, `w`, `h`.
+     * Current layout (will be updated based on breakpoint).
      */
     layout: PropTypes.arrayOf(
         PropTypes.shape({
@@ -137,15 +57,35 @@ ReactGridLayout.propTypes = {
     ),
 
     /**
+     * Layouts per breakpoint. Keys should match breakpoint names (e.g., 'lg', 'md', 'sm').
+     */
+    layouts: PropTypes.objectOf(
+        PropTypes.arrayOf(
+            PropTypes.shape({
+                i: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+                x: PropTypes.number.isRequired,
+                y: PropTypes.number.isRequired,
+                w: PropTypes.number.isRequired,
+                h: PropTypes.number.isRequired
+            })
+        )
+    ),
+
+    /**
      * Dash components to render inside the grid. Each child should have an `id`
      * that matches the corresponding layout item's `i` value.
      */
     children: PropTypes.node,
 
     /**
-     * Number of columns in the grid.
+     * Breakpoint widths in pixels.
      */
-    cols: PropTypes.number,
+    breakpoints: PropTypes.objectOf(PropTypes.number),
+
+    /**
+     * Number of columns per breakpoint.
+     */
+    cols: PropTypes.objectOf(PropTypes.number),
 
     /**
      * Height of a single row in pixels.
@@ -232,3 +172,8 @@ ReactGridLayout.propTypes = {
      */
     style: PropTypes.object
 };
+
+export default ReactResponsiveGridLayout;
+
+export const defaultProps = ReactResponsiveGridLayout.defaultProps;
+export const propTypes = ReactResponsiveGridLayout.propTypes;
